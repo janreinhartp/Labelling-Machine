@@ -189,9 +189,9 @@ void readSensors()
   }
 }
 
-bool RunAutoFlag = false;
 int runAutoStatus = 0;
 bool InitialMoveSticker = false;
+int counter = 0;
 
 void runAuto()
 {
@@ -205,16 +205,20 @@ void runAuto()
     {
       runAutoStatus = 1;
       InitialMoveSticker = true;
+      counter += 1;
     }
     break;
   case 1:
     // Wait for Bottle
-    if(InitialMoveSticker == true){
+    if (InitialMoveSticker == true)
+    {
       if (sensorState2 == true)
       {
         rSticker.relayOn();
         pcf8575.digitalWrite(cLabel, false);
-      }else{
+      }
+      else
+      {
         delay(300);
         InitialMoveSticker = false;
       }
@@ -294,6 +298,9 @@ void readButtonUpState()
           currentTestMenuScreen++;
         }
       }
+      else if (runAutoFlag == true)
+      {
+      }
       else
       {
         if (currentMainScreen == NUM_MAIN_ITEMS - 1)
@@ -350,6 +357,9 @@ void readButtonUpState()
           {
             currentTestMenuScreen++;
           }
+        }
+        else if (runAutoFlag == true)
+        {
         }
         else
         {
@@ -422,6 +432,9 @@ void readButtonDownState()
           currentTestMenuScreen--;
         }
       }
+      else if (runAutoFlag == true)
+      {
+      }
       else
       {
         if (currentMainScreen == 0)
@@ -491,6 +504,9 @@ void readButtonDownState()
           {
             currentTestMenuScreen--;
           }
+        }
+        else if (runAutoFlag == true)
+        {
         }
         else
         {
@@ -635,6 +651,7 @@ void readButtonEnterState()
             rRoller.relayOn();
             pcf8575.digitalWrite(cRoller, false);
             // timerLinearHoming.start();
+            counter = 0;
           }
         }
       }
@@ -741,7 +758,7 @@ void printSettingScreen(String SettingTitle, String Unit, int Value, bool EditFl
   refreshScreen = false;
 }
 
-void printRunAuto(String SettingTitle, String Process, String TimeRemaining)
+void printRunAuto(String SettingTitle, String Process, String Count)
 {
   lcd.clear();
   lcd.setCursor(0, 0);
@@ -749,7 +766,9 @@ void printRunAuto(String SettingTitle, String Process, String TimeRemaining)
   lcd.setCursor(0, 1);
   lcd.print(Process);
   lcd.setCursor(0, 2);
-  lcd.print(TimeRemaining);
+  lcd.print("Current Count:");
+  lcd.setCursor(0, 3);
+  lcd.print(Count);
   refreshScreen = false;
 }
 
@@ -780,7 +799,7 @@ void printScreen()
     case 2:
       printTestScreen(testmachine_items[currentTestMenuScreen], "Status", rRoller.getMotorState(), false);
       break;
-    case 4:
+    case 3:
       printTestScreen(testmachine_items[currentTestMenuScreen], "", true, true);
       break;
     default:
@@ -791,11 +810,11 @@ void printScreen()
   {
     switch (runAutoStatus)
     {
-    case 1:
-      printRunAuto("Waiting For Bottle", "", "N/A");
+    case 0:
+      printRunAuto("Waiting For Bottle", "", String(counter));
       break;
-    case 2:
-      printRunAuto("Dispensing Sticker", "Forward", "N/A");
+    case 1:
+      printRunAuto("Dispensing Sticker", "", String(counter));
       break;
     default:
       break;
@@ -815,6 +834,7 @@ void setup()
   initializeLCD();
   Settings.begin("timerSetting", false);
   Serial.begin(9600);
+  counter = 0;
 }
 
 void loop()
